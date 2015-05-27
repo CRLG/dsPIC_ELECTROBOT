@@ -3,7 +3,7 @@
 #define _GENERAL_H_
 
 #define VERSION_SOFT_MAJ    (1)
-#define VERSION_SOFT_MIN    (0)
+#define VERSION_SOFT_MIN    (1)
 
 
 #define ADRESSE_I2C_dsPIC1	(0x50>>1)
@@ -94,6 +94,7 @@ typedef struct {
 
 
 extern T_dsPIC_REGISTER dsPIC_reg[];
+extern unsigned short cptPerteComMaster;
 
 #endif
 // End

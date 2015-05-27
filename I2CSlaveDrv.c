@@ -60,6 +60,7 @@
 
 unsigned char ucRAMBuffer[SIZE_RAM_BUFFER];	//RAM area which will work as EEPROM for Master I2C device
 unsigned char *RAMPtr;			//Pointer to RAM memory locations
+unsigned short cptPerteComMaster=0;
 struct FlagType Flag;
 
 // Prototype des fonctions locales
@@ -117,7 +118,8 @@ void __attribute__((interrupt,no_auto_psv)) _SI2C1Interrupt(void)
         indexRAM = 0;
 		I2C1TRN = ucRAMBuffer[indexRAM++];  // Renvoie le 1er octet du buffer
         I2C1CONbits.SCLREL = 1;	//Release SCL1 line
-		while(I2C1STATbits.TBF);//Wait till all 
+		while(I2C1STATbits.TBF);//Wait till all
+        cptPerteComMaster = 0; // requête lecture -> le master i2c est bien présent 
 	}
 	// Requête de lecture: la suite des octets
 	else
@@ -262,8 +264,7 @@ void FinReceptionTrameValideI2C(void)
        dsPIC_reg[indexReg].new_data = 1; // indique à la tâche de fond que le registe a été modifié     
     }
     // else : le registre est read only, pas d'écriture     
- }       
-    
+ }
 }   
 
 

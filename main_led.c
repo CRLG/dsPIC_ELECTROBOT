@@ -56,7 +56,8 @@ _FWDT(FWDTEN_OFF);
 
 
 #define PERIOD  0x3FFF						// sets the default interval flash rate
-#define FLASH_RATE 1						// smaller value yields faster rate (1-100)
+#define FLASH_RATE_NORMAL 1						// smaller value yields faster rate (1-100)
+#define FLASH_RATE_ERR_COM_MASTER 30        // flash rate if master is absent
 #define FOREVER 1							// endless 
 
 /* function prototypes */
@@ -96,8 +97,9 @@ T_dsPIC_REGISTER dsPIC_reg[MAX_REGISTRES_NUMBER];
 
 int main ( void )
 {
- unsigned short adc;
- char scval;;
+ char scval;
+ unsigned short flash_speed;
+ unsigned char perteComMaster=0;
  
  Init_Ports();
  Init_Registers();
@@ -115,7 +117,16 @@ int main ( void )
 	while (FOREVER)
 	{
 
-		if (timer_expired && (Counter >= FLASH_RATE) )
+        // Diag de perte de comm avec le master
+        if (timer_expired) {
+ENTER_CRITICAL_SECTION_I2C()
+            if (cptPerteComMaster!=0xFFFF) { cptPerteComMaster++; }
+            perteComMaster = (cptPerteComMaster > 100);
+LEAVE_CRITICAL_SECTION_I2C()
+            flash_speed = (perteComMaster==0)?FLASH_RATE_NORMAL:FLASH_RATE_ERR_COM_MASTER;
+        }
+        
+		if (timer_expired && (Counter >= flash_speed) )
 		{
             LATAbits.LATA4 = !LATAbits.LATA4; 
 		    Counter = 0;
@@ -318,7 +329,6 @@ void Init_Analog(void)
 unsigned short getAnalog(unsigned char voie)
 {
   unsigned short ADCValue;
-  unsigned long i;
  // TODO Sélectionne l'entrée à convertir
  AD1CHS0bits.CH0SA = voie;
  AD1CON1bits.SAMP = 1; // Start sampling
